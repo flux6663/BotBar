@@ -5,16 +5,19 @@
 #include <WiFiManager.h>
 #include <LittleFS.h>
 
-const char * nomDeFichier = "/Hello.html";
+const char * nomDeFichier = "/Hello.html";  // <<--- NOM DU FICHIER HTML DE LA PAGE WEB
 
-const char* ssid = "NOM RESEAU WIFI";          // <<--- METTRE ICI VOTRE NOM RESEAU WIFI
-const char* password = "MOT DE PASSE WIFI";    // <<--- METTRE ICI VOTRE MOT DE PASSE WIFI
+const char* ssid = "SSID";          // <<--- METTRE ICI VOTRE NOM RESEAU WIFI
+const char* password = "MDP";       // <<--- METTRE ICI VOTRE MOT DE PASSE WIFI
 
+//Ouverture du port http pour la page web
 const uint16_t HTTPPort = 80;
-WiFiServer serveurWeb(HTTPPort); // crée un serveur sur le port HTTP standard
+WiFiServer serveurWeb(HTTPPort);
 
-void printHTTPServerInfo()
-{
+
+//Récupération et inscription dans le terminale, l'ip de l'ESP
+void printHTTPServerInfo() {
+
   Serial.print(F("Site web http://")); Serial.print(WiFi.localIP());
   if (HTTPPort != 80) {
     
@@ -22,10 +25,12 @@ void printHTTPServerInfo()
     Serial.print(HTTPPort);
   }
   Serial.println();
+
 }
 
-void testRequeteWeb()
-{
+//Génération de la page web grace au fichier html dans la mémoire flash
+void testRequeteWeb() {
+
   boolean currentLineIsBlank = true;
 
   WiFiClient client = serveurWeb.available();
@@ -57,11 +62,12 @@ void testRequeteWeb()
   } // end while
   delay(1);
   client.stop(); // termine la connexion
+
 }
 
 
 void setup() {
-  Serial.begin(9600); // parce que mon Wemos et par défaut à peu près à cette vitesse, évite les caractères bizarre au boot
+  Serial.begin(9600); //ouverture communication série a 9600bit/s
   Serial.println("\n\nTest SPIFFS\n");
 
   // on démarre le SPIFSS
@@ -70,8 +76,10 @@ void setup() {
     while (true); // on ne va pas plus loin
   }
 
+  //connection au WiFi
   WiFi.begin(ssid, password);
 
+  //donne le statue de connexion au WiFi
   Serial.println();
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -85,10 +93,7 @@ void setup() {
 
 }
 
+//Démarrage de la fonction testRequeteWeb() pour la création de la page Web
 void loop() {
   testRequeteWeb();
 }
-
-
-
-//j'ai rajouter des commantaire ...
