@@ -5,9 +5,8 @@
 #include <WiFiManager.h>
 #include <LittleFS.h>
 
+WiFiManager wm;
 const char * nomDeFichier = "/index.html";  // <<--- NOM DU FICHIER HTML DE LA PAGE WEB
-const char* ssid = "SSID";                  // <<--- METTRE ICI VOTRE NOM RESEAU WIFI
-const char* password = "MDP";               // <<--- METTRE ICI VOTRE MOT DE PASSE WIFI
 
 const byte pinLed = D1;
 
@@ -32,14 +31,14 @@ char urlRequest[maxURL + 1];             // +1 pour avoir la place du '\0'
 // Initialisation du WiFi + serveur Web
 void InitWiFi() {
 
-  // Connexion au Réseaux WiFi
-  WiFi.begin(ssid, password);
-  Serial.println();
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.write('.');
+  // Si il n'y a pas de donner de WiFi dans la mémoire flash, on crée un Wifi pour entrés les information
+  WiFi.mode(WIFI_STA);
+
+  if (!wm.autoConnect("BotBar")) {
+    Serial.println("Erreur de connexion.");
+  } else {
+    Serial.println("Connexion etablie !");
   }
-  Serial.println();
 
   // Démarrage Serveur Web
   serveurWeb.begin();
