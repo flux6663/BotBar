@@ -4,91 +4,43 @@
 #include <DNSServer.h>
 #include <WiFiManager.h>
 #include <LittleFS.h>
+#include <ConfWiFi.h>
 
-const char * nomDeFichier = "/Hello.html";
+const byte pinLed = D1;
 
-const char* ssid = "NOM RESEAU WIFI";          // <<--- METTRE ICI VOTRE NOM RESEAU WIFI
-const char* password = "MOT DE PASSE WIFI";    // <<--- METTRE ICI VOTRE MOT DE PASSE WIFI
+// Initialisation des Pin Entrés et Sortie de l'ESP
+void InitPin() {
+  pinMode(pinLed, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+}
 
-const uint16_t HTTPPort = 80;
-WiFiServer serveurWeb(HTTPPort); // crée un serveur sur le port HTTP standard
+//démarrage de LittleFS (Gestionnaire de fichier) pour la page HTML
+void InitLittleFS() {
+  Serial.println("\n\nTest LittleFS\n");
 
-void printHTTPServerInfo()
-{
-  Serial.print(F("Site web http://")); Serial.print(WiFi.localIP());
-  if (HTTPPort != 80) {
-    
-    Serial.print(F(":"));
-    Serial.print(HTTPPort);
+  // Si il y a une erreur, on ne vas pas plus loins
+  if (!LittleFS.begin()) {
+    Serial.println("erreur LittleFS");
+    while (true);
   }
-  Serial.println();
 }
-
-void testRequeteWeb()
-{
-  boolean currentLineIsBlank = true;
-
-  WiFiClient client = serveurWeb.available();
-  if (!client) return; // pas de client connecté
-
-  while (client.connected()) {
-    if (client.available()) {
-      // on lit toute la trame HTPP, ici sans se soucier de la reqête
-      char c = client.read();
-
-      if (c == '\n' && currentLineIsBlank) { // une requête HTTP se termine par une ligne vide
-        // ON GENERE LA PAGE WEB
-        // On envoie un en tête de réponse HTTP standard
-        client.println(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n"));
-        
-        if (LittleFS.exists(nomDeFichier)) {
-          File pageWeb = LittleFS.open(nomDeFichier, "r");
-          client.write(pageWeb);
-          pageWeb.close();
-        } else {
-          Serial.println(F("Erreur de fichier"));
-        }
-        // on sort du while et termine la requête
-        break;
-      }
-      if (c == '\n') currentLineIsBlank = true;
-      else if (c != '\r') currentLineIsBlank = false;
-    } // end if available
-  } // end while
-  delay(1);
-  client.stop(); // termine la connexion
-}
-
 
 void setup() {
-  Serial.begin(9600); // parce que mon Wemos et par défaut à peu près à cette vitesse, évite les caractères bizarre au boot
-  Serial.println("\n\nTest SPIFFS\n");
+  // Vitesse de la communication Série 9600 Bit/s
+  Serial.begin(9600);
+  randomSeed(analogRead(0));
 
-  // on démarre le SPIFSS
-  if (!LittleFS.begin()) {
-    Serial.println("erreur SPIFFS");
-    while (true); // on ne va pas plus loin
-  }
+  // Initialisation des Pin Entrés est Sortie de l'ESP
+  InitPin();
 
-  WiFi.begin(ssid, password);
+  //démarrage de LittleFS (Gestionnaire de fichier) pour la page HTML
+  InitLittleFS();
 
-  Serial.println();
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.write('.');
-  }
-  Serial.println();
-
-  // on démarre le serveur
-  serveurWeb.begin();
-  printHTTPServerInfo();
-
+  // Apelle de la fonction InitWiFi() pour démaré la 
+  // Comunication Entre le Wifi est le Programme
+  initWiFi(LED_BUILTIN, "ESP", "");
 }
 
 void loop() {
-  testRequeteWeb();
+
 }
-
-
-
-//j'ai rajouter des commantaire ...
